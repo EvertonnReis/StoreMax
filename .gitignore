@@ -1,0 +1,50 @@
+# .gitignore
+
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Development
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build outputs
+dist/
+build/
+client/dist/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime
+.cache/
+*.pid
+*.seed
+*.pid.lock
+
+# Database files
+mysql-data/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Coverage reports
+coverage/
