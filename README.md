@@ -446,9 +446,6 @@ MIT
 - [x] Middleware de validação de dados
 - [x] Integração com banco de dados (Sequelize + MySQL)
 - [x] README com instruções completas
-- [ ] Link do design Figma (adicione o seu)
-- [ ] Vídeo demonstrativo (até 5 minutos)
-- [ ] Repositório GitHub publicado
 
 ---
 
