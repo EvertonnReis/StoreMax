@@ -5,11 +5,19 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import dotenv from 'dotenv';
+
+// Carrega variáveis de ambiente
+dotenv.config();
 
 import { ProductController } from './src/controllers/ProductController.js';
 import { SaleController } from './src/controllers/SaleController.js';
+import { AuthController } from './src/controllers/AuthController.js';
+import { CategoryController } from './src/controllers/CategoryController.js';
 import { createProductRoutes } from './src/routes/productRoutes.js';
 import { createSaleRoutes } from './src/routes/saleRoutes.js';
+import { createAuthRoutes } from './src/routes/authRoutes.js';
+import { createCategoryRoutes } from './src/routes/categoryRoutes.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -29,10 +37,14 @@ app.use(express.static(join(__dirname, 'client', 'dist')));
 // Controllers
 const productController = new ProductController();
 const saleController = new SaleController();
+const authController = new AuthController();
+const categoryController = new CategoryController();
 
 // Sincroniza models com banco
 // Sincroniza models com banco
 import { sequelize } from './src/models/db.js';
+import { User } from './src/models/User.js';
+import { Category } from './src/models/Category.js';
 
 sequelize.sync().then(async () => {
   // Se não houver produtos, insere exemplos
@@ -47,12 +59,37 @@ sequelize.sync().then(async () => {
     ]);
     console.log('Produtos de exemplo inseridos no banco.');
   }
+
+  // Cria usuário admin padrão se não existir
+  const userCount = await User.count();
+  if (userCount === 0) {
+    await User.create({
+      name: 'Administrador',
+      email: 'admin@storemax.com',
+      password: 'admin123',
+      role: 'admin',
+    });
+    console.log('Usuário admin criado: admin@storemax.com / admin123');
+  }
+
+  // Cria categorias padrão se não existirem
+  const categoryCount = await Category.count();
+  if (categoryCount === 0) {
+    await Category.bulkCreate([
+      { name: 'Electronics', description: 'Dispositivos eletrônicos' },
+      { name: 'Accessories', description: 'Acessórios diversos' },
+      { name: 'Office', description: 'Equipamentos de escritório' },
+    ]);
+    console.log('Categorias padrão criadas.');
+  }
 });
 
 
 // Routes
+app.use('/api/auth', createAuthRoutes(authController));
 app.use('/api/products', createProductRoutes(productController, io));
 app.use('/api/sales', createSaleRoutes(saleController, io));
+app.use('/api/categories', createCategoryRoutes(categoryController));
 
 
 // ...rotas removidas, agora tudo via controllers e banco...

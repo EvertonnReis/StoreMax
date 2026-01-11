@@ -2,7 +2,7 @@
   <div class="products-view">
     <div class="view-header">
       <h2>📦 Gerenciar Produtos</h2>
-      <button class="btn btn-success" @click="showAddForm = !showAddForm">
+      <button v-if="authStore.isAdmin" class="btn btn-success" @click="showAddForm = !showAddForm">
         {{ showAddForm ? 'Cancelar' : '➕ Novo Produto' }}
       </button>
     </div>
@@ -128,7 +128,7 @@
           </div>
         </div>
 
-        <div class="product-actions">
+        <div class="product-actions" v-if="authStore.isAdmin">
           <button class="btn btn-small btn-warning" @click="editProduct(product)">
             ✏️ Editar
           </button>
@@ -144,12 +144,14 @@
 <script setup>
 import { ref, reactive, onMounted} from 'vue'
 import { useProductStore } from '../stores/products'
+import { useAuthStore } from '../stores/auth'
 
 onMounted(() => {
   productStore.fetchProducts()
 })
 
 const productStore = useProductStore()
+const authStore = useAuthStore()
 const showAddForm = ref(false)
 const editingProduct = ref(null)
 const formData = reactive({

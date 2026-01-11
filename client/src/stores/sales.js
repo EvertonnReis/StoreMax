@@ -1,31 +1,55 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import axios from 'axios'
+import { useAuthStore } from './auth'
 
 const API_URL = 'http://localhost:3000/api'
 
 export const useSalesStore = defineStore('sales', () => {
   const sales = ref([])
   const cart = ref([])
+  const authStore = useAuthStore()
 
+  // Helper para adicionar token nas requisições
+  const getHeaders = () => {
+    const headers = { 'Content-Type': 'application/json' }
+    if (authStore.token) {
+      headers.Authorization = `Bearer ${authStore.token}`
+    }
+    return headers
+  }
 
-  // Fetch all sales
+  // Fetch all sales (requer autenticação)
   const fetchSales = async () => {
     try {
-      const response = await axios.get(`${API_URL}/sales`)
-      sales.value = response.data
+      const response = await fetch(`${API_URL}/sales`, {
+        headers: getHeaders()
+      })
+      if (response.ok) {
+        sales.value = await response.json()
+      } else if (response.status === 401) {
+        console.error('Não autenticado para buscar vendas')
+      }
     } catch (error) {
       console.error('Error fetching sales:', error)
     }
   }
 
-
-  // Complete sale
+  // Complete sale (requer autenticação)
   const completeSale = async (items) => {
     try {
-      const response = await axios.post(`${API_URL}/sales`, { items })
-      await fetchSales()
-      return response.data
+      const response = await fetch(`${API_URL}/sales`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ items })
+      })
+      
+      if (response.ok) {
+        await fetchSales()
+        return await response.json()
+      } else {
+        const error = await response.json()
+        throw new Error(error.error || 'Erro ao completar venda')
+      }
     } catch (error) {
       console.error('Error completing sale:', error)
       throw error

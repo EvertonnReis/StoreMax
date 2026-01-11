@@ -1,11 +1,39 @@
 <template>
-  <div class="container">
+  <!-- Tela de autenticação -->
+  <div v-if="!authStore.isAuthenticated">
+    <LoginView 
+      v-if="authMode === 'login'" 
+      @toggle-mode="authMode = 'register'"
+      @login-success="onAuthSuccess"
+    />
+    <RegisterView 
+      v-else 
+      @toggle-mode="authMode = 'login'"
+      @register-success="onAuthSuccess"
+    />
+  </div>
+
+  <!-- Aplicação principal (após login) -->
+  <div v-else class="container">
     <header class="header">
-      <h1>🛒 StoreMax - Sistema de Vendas</h1>
+      <div class="header-left">
+        <h1>🛒 StoreMax - Sistema de Vendas</h1>
+      </div>
       <div class="header-info">
+        <div class="user-info">
+          <span class="user-badge" :class="{ admin: authStore.isAdmin }">
+            {{ authStore.isAdmin ? '👑' : '👤' }} {{ authStore.user?.name }}
+          </span>
+          <span class="user-role">
+            {{ authStore.isAdmin ? 'Administrador' : 'Usuário' }}
+          </span>
+        </div>
         <span class="connection-status connected">
           🟢 Online
         </span>
+        <button @click="handleLogout" class="btn-logout">
+          🚪 Sair
+        </button>
       </div>
     </header>
 
@@ -31,18 +59,40 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useAuthStore } from './stores/auth'
 import ProductsView from './views/ProductsView.vue'
 import SalesView from './views/SalesView.vue'
 import CheckoutView from './views/CheckoutView.vue'
+import LoginView from './views/LoginView.vue'
+import RegisterView from './views/RegisterView.vue'
 
+const authStore = useAuthStore()
 const activeTab = ref('products')
+const authMode = ref('login') // 'login' ou 'register'
 
 const tabs = ['products', 'checkout', 'sales']
 const tabLabels = {
   products: '📦 Produtos',
   checkout: '🛍️ Carrinho',
   sales: '📊 Vendas',
+}
+
+// Inicializar autenticação ao carregar
+onMounted(async () => {
+  await authStore.initAuth()
+})
+
+const onAuthSuccess = () => {
+  activeTab.value = 'products'
+  authMode.value = 'login'
+}
+
+const handleLogout = () => {
+  if (confirm('Deseja realmente sair?')) {
+    authStore.logout()
+    activeTab.value = 'products'
+  }
 }
 </script>
 
@@ -125,10 +175,13 @@ footer {
   padding: 1.5rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.header h1 {
-  font-size: 2.5rem;
+.header-left h1 {
+  font-size: 2rem;
   font-weight: bold;
   letter-spacing: 1px;
   margin: 0;
@@ -138,6 +191,51 @@ footer {
   display: flex;
   gap: 15px;
   align-items: center;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.user-badge {
+  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+}
+
+.user-badge.admin {
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  color: #2d3748;
+}
+
+.user-role {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.btn-logout {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  backdrop-filter: blur(10px);
+}
+
+.btn-logout:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
 }
 
 .connection-status {
