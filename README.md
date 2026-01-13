@@ -82,7 +82,7 @@ StoreMax/
 ### 1. Clone o repositório
 
 ```bash
-git clone <seu-repositorio>
+git clone https://github.com/EvertonnReis/StoreMax/
 cd StoreMax
 ```
 
